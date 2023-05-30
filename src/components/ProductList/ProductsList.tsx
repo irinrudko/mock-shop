@@ -48,9 +48,9 @@ export const ProductsList = () => {
         >
             {productsList == null
                 ? 'loading'
-                : productsList.map((product, index) => {
+                : productsList.map((product) => {
                       return (
-                          <div key={index}>
+                          <div key={product.id}>
                               <ProductCard
                                   name={product.name}
                                   price={product.price}
