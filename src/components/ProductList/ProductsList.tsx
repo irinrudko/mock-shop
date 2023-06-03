@@ -1,65 +1,54 @@
-import axios from 'axios'
 import Box from '@mui/material/Box'
 import { ProductCard } from './ProductCard/ProductCard'
-import { useEffect, useState } from 'react'
-
-type ProductsList = {
-    status: string
-    code: number
-    total: number
-    data: ProductData[]
-}
-type ProductData = {
-    id: number
-    name: string
-    description: string
-    ean?: string
-    upc?: string
-    image: string
-    images?: null[] | null
-    net_price?: number
-    taxes?: number
-    price: string
-    categories?: number[] | null
-    tags?: string[] | null
-}
+import { useEffect } from 'react'
+import { BasicPagination } from '../Pagination/BasicPagination'
+import { useAppSelector, useAppDispatch } from '../../state/reducers/store'
+import { getProductsTC } from '../../state/reducers/products-reducer'
 
 export const ProductsList = () => {
-    const [productsList, setProductsList] = useState<ProductData[]>([])
+    const dispatch = useAppDispatch()
+    const products = useAppSelector((state) => state.products.data)
+
+    const totalProductsCount = useAppSelector((state) => state.products.total)
+    const pageSize = useAppSelector((state) => state.products.productsPerPage)
+    const currentPage = useAppSelector((state) => state.products.currentPage)
 
     useEffect(() => {
-        axios.get<ProductsList>('https://fakerapi.it/api/v1/products?_quantity=100').then((response) => {
-            setProductsList(response.data.data)
-            console.log(response.data.data)
-        })
-    }, [])
+        dispatch(getProductsTC())
+    }, [dispatch])
 
     return (
-        <Box
-            sx={{
-                display: 'flex',
-                flexWrap: 'wrap',
-                '& > :not(style)': {
-                    m: 5,
-                    width: 300,
-                    height: 350,
-                },
-            }}
-        >
-            {productsList == null
-                ? 'loading'
-                : productsList.map((product) => {
-                      return (
-                          <div key={product.id}>
-                              <ProductCard
-                                  name={product.name}
-                                  price={product.price}
-                                  description={product.description}
-                                  image={product.image}
-                              />
-                          </div>
-                      )
-                  })}
-        </Box>
+        <>
+            <BasicPagination
+                totalProductsCount={totalProductsCount}
+                pageSize={pageSize}
+                currentPage={currentPage}
+                getNewProducts={() => dispatch(getProductsTC())}
+            />
+            <Box
+                sx={{
+                    display: 'flex',
+                    flexWrap: 'wrap',
+                    '& > :not(style)': {
+                        m: 5,
+                        width: 300,
+                        height: 350,
+                    },
+                }}
+            >
+                {products.map((product) => {
+                    return (
+                        <div key={product.id}>
+                            <ProductCard
+                                name={product.name}
+                                price={product.price}
+                                description={product.description}
+                                image={product.image}
+                            />
+                        </div>
+                    )
+                })}
+            </Box>
+        </>
     )
 }
