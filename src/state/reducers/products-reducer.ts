@@ -1,21 +1,34 @@
-const initialState: ProductsStateType = {
+import { ProductData, ProductsResponseType, productsAPI } from '../../API/products-api'
+import { AppThunk } from './store'
+
+const initialState = {
     status: '',
     code: 0,
     total: 0,
-    currentPage: 1, //for pagination
-    productsPerPage: 30, //for pagination
-    data: [],
+    currentPage: 1,
+    productsPerPage: 30,
+    data: [
+        {
+            id: 1,
+            name: '',
+            description: '',
+            image: '',
+            price: '',
+        },
+    ] as ProductData[],
 }
+
+export type ProductsStateType = typeof initialState
 
 export const productsReducer = (
     state: ProductsStateType = initialState,
     action: ProductsActionTypes
 ): ProductsStateType => {
     switch (action.type) {
-        case 'SET-PRODUCTS':
+        case 'GET-PRODUCTS':
             return {
                 ...state,
-                data: action.products,
+                data: action.products.data,
             }
 
         case 'SET-CURRENT-PAGE':
@@ -28,12 +41,15 @@ export const productsReducer = (
     }
 }
 
-export const setProductsAC = (products: Array<ProductData>) => {
-    return {
-        type: 'SET-PRODUCTS',
-        products,
-    } as const
-}
+// Action Creators
+export const getProductsAC = (products: ProductsResponseType) => ({ type: 'GET-PRODUCTS', products } as const)
+
+// export const setProductsAC = (products: Array<ProductData>) => {
+//     return {
+//         type: 'SET-PRODUCTS',
+//         products,
+//     } as const
+// }
 export const setCurrentPageAC = (currentPage: number) => {
     return {
         type: 'SET-CURRENT-PAGE',
@@ -41,27 +57,18 @@ export const setCurrentPageAC = (currentPage: number) => {
     } as const
 }
 
-export type ProductsActionTypes = ReturnType<typeof setProductsAC> | ReturnType<typeof setCurrentPageAC>
+// Thunks
+export const getProductsTC = (): AppThunk => (dispatch) => {
+    productsAPI
+        .getProducts()
+        .then((res) => {
+            //@ts-ignore
+            dispatch(getProductsAC(res))
+        })
+        .catch((err: any) => {
+            let error = err.response.data.error
+            console.log('catch, error:', error)
+        })
+}
 
-type ProductsStateType = {
-    status: string
-    code: number
-    total: number
-    currentPage: number
-    productsPerPage: number
-    data: ProductData[]
-}
-type ProductData = {
-    id: number
-    name: string
-    description: string
-    ean?: string
-    upc?: string
-    image: string
-    images?: null[] | null
-    net_price?: number
-    taxes?: number
-    price: string
-    categories?: number[] | null
-    tags?: string[] | null
-}
+export type ProductsActionTypes = ReturnType<typeof getProductsAC> | ReturnType<typeof setCurrentPageAC>
